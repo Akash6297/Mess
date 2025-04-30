@@ -4,7 +4,7 @@ const filterType = document.getElementById('filterType');
 const filterPerson = document.getElementById('filterPerson');
 const downloadExcel = document.getElementById('downloadExcel');
 
-const API_URL = 'http://localhost:5000/api/entries'; // Replace with your backend URL
+const API_URL = 'https://mess-server-sygz.onrender.com/api/entries'; // Replace with your backend URL
 
 // Fetch and render data
 async function fetchEntries() {
