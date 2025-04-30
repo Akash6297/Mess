@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <div class="container">
+    <h1>Expense Tracker (Akash, Subho, Auruna, Papai)</h1>
+
+    <!-- Add Entry Form -->
+    <form id="entryForm">
+      <select id="type" required>
+        <option value="">Select Type</option>
+        <option value="expense">Expense</option>
+        <option value="deposit">Deposit</option>
+      </select>
+
+      <input type="number" id="amount" placeholder="Amount" required />
+      
+      <select id="byWhom" required>
+        <option value="">By Whom</option>
+        <option value="AKASH">AKASH</option>
+        <option value="SUBHO">SUBHO</option>
+        <option value="AURUNA">AURUNA</option>
+        <option value="PAPAI">PAPAI</option>
+      </select>
+
+      <input type="date" id="date" required />
+      <input type="text" id="note" placeholder="Note" />
+      <button type="submit">Add Entry</button>
+    </form>
+
+    <!-- Filters -->
+    <div class="filters">
+      <select id="filterType">
+        <option value="all">All</option>
+        <option value="expense">Expense</option>
+        <option value="deposit">Deposit</option>
+      </select>
+      <select id="filterPerson">
+        <option value="all">All</option>
+        <option value="AKASH">AKASH</option>
+        <option value="SUBHO">SUBHO</option>
+        <option value="AURUNA">AURUNA</option>
+        <option value="PAPAI">PAPAI</option>
+      </select>
+      <button id="downloadExcel">Download Report</button>
+    </div>
+
+    <!-- Entry List -->
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>By</th>
+          <th>Date</th>
+          <th>Note</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="entryList">
+        <!-- JS Will Populate -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
