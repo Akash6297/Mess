@@ -1,107 +1,88 @@
-const form = document.getElementById('entryForm');
-const entryList = document.getElementById('entryList');
-const filterType = document.getElementById('filterType');
-const filterPerson = document.getElementById('filterPerson');
-const downloadExcel = document.getElementById('downloadExcel');
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("expenseForm");
 
-const API_URL = 'https://mess-server-sygz.onrender.com/api/entries'; // Replace with your backend URL
+  // Handle form submission
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
 
-// Fetch and render data
-async function fetchEntries() {
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  renderEntries(data);
-}
+    const type = document.getElementById("type").value;
+    const amount = document.getElementById("amount").value;
+    const byWhom = document.getElementById("byWhom").value;
+    const date = document.getElementById("date").value;
+    const note = document.getElementById("note").value;
 
-// Render entries
-function renderEntries(data) {
-  const type = filterType.value;
-  const person = filterPerson.value;
-  const filtered = data.filter(item =>
-    (type === 'all' || item.type === type) &&
-    (person === 'all' || item.byWhom === person)
-  );
+    // Create the expense or deposit object
+    const entry = {
+      type,
+      amount,
+      byWhom,
+      date,
+      note,
+    };
 
-  entryList.innerHTML = '';
-  filtered.forEach(item => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${item.type}</td>
-      <td>₹${item.amount}</td>
-      <td>${item.byWhom}</td>
-      <td>${new Date(item.date).toLocaleDateString()}</td>
-      <td>${item.note || ''}</td>
-      <td class="actions">
-        <button class="edit" onclick="editEntry('${item._id}')">Edit</button>
-        <button class="delete" onclick="deleteEntry('${item._id}')">Delete</button>
-      </td>
-    `;
-    entryList.appendChild(row);
-  });
-}
+    // Send the entry to the backend API
+    fetch("https://mess-server-sygz.onrender.com/api/entries", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(entry),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle successful submission
+        console.log("Data saved successfully:", data);
+        alert("Data saved successfully!");
 
-// Add new entry
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+        // Optionally, reset the form after submission
+        form.reset();
 
-  const entry = {
-    type: document.getElementById('type').value,
-    amount: document.getElementById('amount').value,
-    byWhom: document.getElementById('byWhom').value,
-    date: document.getElementById('date').value,
-    note: document.getElementById('note').value,
-  };
-
-  await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(entry),
+        // Fetch the latest entries to update the UI
+        fetchEntries();
+      })
+      .catch((error) => {
+        // Handle errors
+        console.error("Error:", error);
+        alert("Error saving data, please try again.");
+      });
   });
 
-  form.reset();
+  // Fetch all entries (expenses and deposits)
+  function fetchEntries() {
+    fetch("https://mess-server-sygz.onrender.com/api/entries")
+      .then((response) => response.json())
+      .then((data) => {
+        // Update the dashboard or display the entries in the UI
+        console.log("Fetched entries:", data);
+
+        // Assuming you have a div with the ID 'entries' to display the entries
+        const entriesDiv = document.getElementById("entries");
+        entriesDiv.innerHTML = ""; // Clear previous entries
+
+        // Loop through the entries and display them
+        data.forEach((entry) => {
+          const entryDiv = document.createElement("div");
+          entryDiv.classList.add("entry");
+
+          entryDiv.innerHTML = `
+            <p><strong>Type:</strong> ${entry.type}</p>
+            <p><strong>Amount:</strong> ${entry.amount}</p>
+            <p><strong>By:</strong> ${entry.byWhom}</p>
+            <p><strong>Date:</strong> ${entry.date}</p>
+            <p><strong>Note:</strong> ${entry.note}</p>
+            <button class="edit-btn" data-id="${entry._id}">Edit</button>
+            <button class="delete-btn" data-id="${entry._id}">Delete</button>
+          `;
+          
+          // Add entryDiv to the entriesDiv
+          entriesDiv.appendChild(entryDiv);
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching entries:", error);
+      });
+  }
+
+  // Fetch the entries when the page loads
   fetchEntries();
 });
-
-// Delete entry
-async function deleteEntry(id) {
-  if (confirm("Are you sure you want to delete this entry?")) {
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    fetchEntries();
-  }
-}
-
-// Edit entry
-async function editEntry(id) {
-  const newNote = prompt("Enter new note:");
-  if (newNote !== null) {
-    await fetch(`${API_URL}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note: newNote }),
-    });
-    fetchEntries();
-  }
-}
-
-// Export to Excel
-downloadExcel.addEventListener('click', async () => {
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  const ws = XLSX.utils.json_to_sheet(data.map(d => ({
-    Type: d.type,
-    Amount: d.amount,
-    By: d.byWhom,
-    Date: new Date(d.date).toLocaleDateString(),
-    Note: d.note
-  })));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Report');
-  XLSX.writeFile(wb, 'expense_report.xlsx');
-});
-
-// Listen to filters
-filterType.addEventListener('change', fetchEntries);
-filterPerson.addEventListener('change', fetchEntries);
-
-// Initial load
-fetchEntries();
