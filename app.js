@@ -3,17 +3,57 @@ const entryList = document.getElementById('entryList');
 const filterType = document.getElementById('filterType');
 const filterPerson = document.getElementById('filterPerson');
 const downloadExcel = document.getElementById('downloadExcel');
+const API_URL = 'https://mess-server-sygz.onrender.com/api/entries';
 
-const API_URL = 'https://mess-server-sygz.onrender.com/api/entries'; // Replace with your backend URL
+const typeInput = document.getElementById('type');
+const amountInput = document.getElementById('amount');
+const byWhomInput = document.getElementById('byWhom');
+const dateInput = document.getElementById('date');
+const noteInput = document.getElementById('note');
 
-// Fetch and render data
+// 🎙️ Create mic button for note field
+const micBtn = document.createElement('button');
+micBtn.textContent = '🎙️';
+micBtn.type = 'button';
+micBtn.style.marginLeft = '5px';
+noteInput.parentNode.insertBefore(micBtn, noteInput.nextSibling);
+
+// 🔊 Voice Recognition for Note Field
+let recognition;
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    noteInput.value = transcript;
+  };
+
+  recognition.onerror = (event) => {
+    alert('Speech recognition error: ' + event.error);
+  };
+
+  micBtn.addEventListener('click', () => {
+    recognition.start();
+  });
+} else {
+  micBtn.disabled = true;
+  micBtn.title = 'Speech recognition not supported in this browser.';
+}
+
+let currentData = [];
+
+// Fetch and render entries
 async function fetchEntries() {
   const res = await fetch(API_URL);
   const data = await res.json();
+  currentData = data;
   renderEntries(data);
 }
 
-// Render entries
+// Render entries to table
 function renderEntries(data) {
   const type = filterType.value;
   const person = filterPerson.value;
@@ -28,12 +68,13 @@ function renderEntries(data) {
     row.innerHTML = `
       <td>${item.type}</td>
       <td>₹${item.amount}</td>
-      <td>${item.byWhom}</td>
+      <td><a href="#" onclick="filterByPerson('${item.byWhom}')">${item.byWhom}</a></td>
       <td>${new Date(item.date).toLocaleDateString()}</td>
       <td>${item.note || ''}</td>
       <td class="actions">
         <button class="edit" onclick="editEntry('${item._id}')">Edit</button>
         <button class="delete" onclick="deleteEntry('${item._id}')">Delete</button>
+        <button class="download" onclick="downloadSingleReport('${item.byWhom}')">📥</button>
       </td>
     `;
     entryList.appendChild(row);
@@ -45,11 +86,11 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const entry = {
-    type: document.getElementById('type').value,
-    amount: document.getElementById('amount').value,
-    byWhom: document.getElementById('byWhom').value,
-    date: document.getElementById('date').value,
-    note: document.getElementById('note').value,
+    type: typeInput.value,
+    amount: amountInput.value,
+    byWhom: byWhomInput.value,
+    date: dateInput.value,
+    note: noteInput.value,
   };
 
   await fetch(API_URL, {
@@ -62,6 +103,35 @@ form.addEventListener('submit', async (e) => {
   fetchEntries();
 });
 
+// Edit entry
+async function editEntry(id) {
+  const item = currentData.find(i => i._id === id);
+  if (!item) return;
+
+  const newType = prompt("Type (expense/deposit):", item.type);
+  const newAmount = prompt("Amount:", item.amount);
+  const newByWhom = prompt("By Whom:", item.byWhom);
+  const newDate = prompt("Date (YYYY-MM-DD):", item.date.slice(0, 10));
+  const newNote = prompt("Note:", item.note);
+
+  if (newType && newAmount && newByWhom && newDate) {
+    await fetch(`${API_URL}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: newType,
+        amount: newAmount,
+        byWhom: newByWhom,
+        date: newDate,
+        note: newNote
+      }),
+    });
+    fetchEntries();
+  } else {
+    alert("All fields except note are required to update.");
+  }
+}
+
 // Delete entry
 async function deleteEntry(id) {
   if (confirm("Are you sure you want to delete this entry?")) {
@@ -70,24 +140,26 @@ async function deleteEntry(id) {
   }
 }
 
-// Edit entry
-async function editEntry(id) {
-  const newNote = prompt("Enter new note:");
-  if (newNote !== null) {
-    await fetch(`${API_URL}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note: newNote }),
-    });
-    fetchEntries();
-  }
+// Filter by person (clickable name)
+function filterByPerson(name) {
+  filterPerson.value = name;
+  fetchEntries();
 }
 
-// Export to Excel
-downloadExcel.addEventListener('click', async () => {
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  const ws = XLSX.utils.json_to_sheet(data.map(d => ({
+// Download entire report
+downloadExcel.addEventListener('click', () => {
+  downloadReport(currentData, 'Full Report');
+});
+
+// Download report for individual
+function downloadSingleReport(name) {
+  const filtered = currentData.filter(d => d.byWhom === name);
+  downloadReport(filtered, `${name}_Report`);
+}
+
+// Create and download Excel report
+function downloadReport(data, filename) {
+  const sheet = XLSX.utils.json_to_sheet(data.map(d => ({
     Type: d.type,
     Amount: d.amount,
     By: d.byWhom,
@@ -95,13 +167,13 @@ downloadExcel.addEventListener('click', async () => {
     Note: d.note
   })));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Report');
-  XLSX.writeFile(wb, 'expense_report.xlsx');
-});
+  XLSX.utils.book_append_sheet(wb, sheet, 'Report');
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+}
 
-// Listen to filters
+// Filter change listeners
 filterType.addEventListener('change', fetchEntries);
 filterPerson.addEventListener('change', fetchEntries);
 
-// Initial load
-fetchEntries();
+// Load data initially
+window.addEventListener('DOMContentLoaded', fetchEntries);
