@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Expense Tracker </h1>
+    <h1>Expense Tracker</h1>
 
     <!-- Add Entry Form -->
     <form id="entryForm">
@@ -31,13 +31,11 @@
       <input type="date" id="date" required />
       <div class="note-container">
         <input type="text" id="note" placeholder="Note" />
-        <button type="button" id="recordNote">🎤</button>
       </div>
-      <br>
-      <hr>
+      
       <div>
-      <button type="submit">Add Entry</button>
-    </div>
+        <button type="submit">Add Entry</button>
+      </div>
     </form>
 
     <!-- Filters -->
@@ -54,7 +52,6 @@
         <option value="AURUNA">AURUNA</option>
         <option value="PAPAI">PAPAI</option>
       </select>
-      
     </div>
 
     <!-- Entry List -->
@@ -72,16 +69,38 @@
       <tbody id="entryList">
         <!-- JS Will Populate -->
       </tbody>
-      
     </table>
-  <br>
-  <br>
-  <br>
-  <br>
+
+    <!-- Charts Section -->
+    <div style="display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+      <div style="flex: 1;">
+        <label for="overallChartType">Overall Chart Type:</label>
+        <select id="overallChartType">
+          <option value="bar">Bar</option>
+          <option value="pie">Pie</option>
+          <option value="doughnut">Doughnut</option>
+        </select>
+        <canvas id="overallChart" width="250" height="250"></canvas>
+      </div>
+
+      <div style="flex: 1;">
+        <label for="personChartType">Person Chart Type:</label>
+        <select id="personChartType">
+          <option value="bar">Bar</option>
+          <option value="pie">Pie</option>
+          <option value="doughnut">Doughnut</option>
+        </select>
+        <canvas id="personChart" width="250" height="250"></canvas>
+      </div>
+    </div>
+
+    <br>
     <button id="downloadExcel">Download Full Report</button>
   </div>
 
+  <!-- Chart.js and Excel Download Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
