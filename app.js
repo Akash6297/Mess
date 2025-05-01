@@ -64,39 +64,53 @@ let barChart, doughnutChart;
 
 // Fetch and render entries
 async function fetchEntries() {
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  currentData = data;
-  renderEntries(data);
-  renderCharts(data);
+    try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error(`Failed to fetch entries: ${res.statusText}`);
+        const data = await res.json();
+        currentData = data;
+        renderEntries(data);
+        renderCharts(data);
+    } catch (error) {
+        console.error(error);
+        alert('Error fetching entries. Please try again later.');
+    }
 }
 
-// Render entries to table
-function renderEntries(data) {
-  const type = filterType.value;
-  const person = filterPerson.value;
-  const filtered = data.filter(item =>
-    (type === 'all' || item.type === type) &&
-    (person === 'all' || item.byWhom === person)
-  );
+// Example: Dynamic Chart Colors
+const generateColors = (count) => Array.from({ length: count }, () => `#${Math.floor(Math.random() * 16777215).toString(16)}`);
 
-  entryList.innerHTML = '';
-  filtered.forEach(item => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${item.type}</td>
-      <td>₹${item.amount}</td>
-      <td><a href="#" onclick="filterByPerson('${item.byWhom}')">${item.byWhom}</a></td>
-      <td>${new Date(item.date).toLocaleDateString()}</td>
-      <td>${item.note || ''}</td>
-      <td class="actions">
-        <button class="edit" onclick="editEntry('${item._id}')">Edit</button>
-        <button class="delete" onclick="deleteEntry('${item._id}')">Delete</button>
-        <button class="download" onclick="downloadSingleReport('${item.byWhom}')">📥</button>
-      </td>
-    `;
-    entryList.appendChild(row);
-  });
+// Speech Recognition Fix
+if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    micBtn.disabled = true;
+    micBtn.title = 'Speech recognition not supported in this browser.';
+} else {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+}
+
+// Attach Event Listeners Dynamically
+function renderEntries(data) {
+    entryList.innerHTML = '';
+    data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.type}</td>
+            <td>₹${item.amount}</td>
+            <td><a href="#" data-person="${item.byWhom}">${item.byWhom}</a></td>
+            <td>${new Date(item.date).toLocaleDateString()}</td>
+            <td>${item.note || ''}</td>
+            <td class="actions">
+                <button class="edit">Edit</button>
+                <button class="delete">Delete</button>
+                <button class="download">📥</button>
+            </td>
+        `;
+        row.querySelector('.edit').addEventListener('click', () => editEntry(item._id));
+        row.querySelector('.delete').addEventListener('click', () => deleteEntry(item._id));
+        row.querySelector('.download').addEventListener('click', () => downloadSingleReport(item.byWhom));
+        entryList.appendChild(row);
+    });
 }
 
 // Render Charts
