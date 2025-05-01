@@ -1,193 +1,341 @@
-/* Base Reset */
+/* Global Styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  background: #f5f7fb;
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f6f9;
   color: #333;
-  padding: 20px;
 }
 
-/* Container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Heading */
 h1 {
   text-align: center;
+  font-size: 2.5rem;
+  color: #333;
   margin-bottom: 30px;
-  color: #2c3e50;
 }
 
-/* Form */
+/* Form Styling */
 form {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   margin-bottom: 30px;
 }
 
-form input,
 form select,
-form button {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+form input {
+  padding: 10px;
   font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 100%;
 }
 
-form input:focus,
-form select:focus {
-  outline: none;
-  border-color: #3498db;
+form input[type="number"],
+form input[type="date"] {
+  text-align: right;
 }
 
 form button {
-  background: #3498db;
+  background-color: #8e44ad;
   color: white;
   border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background-color 0.3s ease;
 }
 
 form button:hover {
-  background: #2980b9;
+  background-color: #6c3483;
 }
 
-/* Filter dropdowns */
+.note-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.note-container input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.note-container button {
+  background-color: #8e44ad;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.note-container button:hover {
+  background-color: #6c3483;
+}
+
+/* Filters Section */
 .filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-  justify-content: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
 }
 
 .filters select {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 48%;
 }
 
-/* Table */
+/* Table Styling */
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  margin-top: 20px;
 }
 
-thead {
-  background: #3498db;
+table th,
+table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  background-color: #8e44ad;
   color: white;
 }
 
-th, td {
-  padding: 12px 15px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
+table td {
+  background-color: #fafafa;
 }
 
-tr:hover {
-  background: #f1f9ff;
-}
-
-/* Links inside table */
-td a {
-  color: #2980b9;
+table td a {
+  color: #8e44ad;
   text-decoration: none;
 }
 
-td a:hover {
+table td a:hover {
   text-decoration: underline;
 }
 
-/* Actions */
-.actions {
+table .actions {
   display: flex;
-  justify-content: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.actions button {
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: none;
+table .actions button {
+  padding: 6px 12px;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: background-color 0.3s ease;
 }
 
-.actions .edit {
+table .actions button.edit {
   background-color: #f39c12;
   color: white;
 }
 
-.actions .delete {
+table .actions button.edit:hover {
+  background-color: #e67e22;
+}
+
+table .actions button.delete {
   background-color: #e74c3c;
   color: white;
 }
 
-.actions .download {
-  background-color: #27ae60;
-  color: white;
+table .actions button.delete:hover {
+  background-color: #c0392b;
 }
 
-/* Mic Button */
-button[type="button"] {
-  background-color: #8e44ad;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: none;
-  margin-left: 5px;
-  cursor: pointer;
-}
-
-button[type="button"]:hover {
-  background-color: #6c3483;
-}
-
-/* Download Excel Button */
-#downloadExcel {
-  margin: 0 auto 20px;
-  display: block;
-  padding: 10px 20px;
+table .actions button.download {
   background-color: #2ecc71;
   color: white;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
 }
 
-#downloadExcel:hover {
+table .actions button.download:hover {
   background-color: #27ae60;
 }
 
-/* Responsive Adjustments */
+/* Responsive Styles */
 @media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
   form {
     grid-template-columns: 1fr;
   }
 
-  .actions {
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  th, td {
+  table {
     font-size: 0.9rem;
   }
+}
+
+/* Download Excel Button */
+#downloadExcel {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+#downloadExcel:hover {
+  background-color: #2980b9;
+}
+
+/* Mic Button */
+.note-container button {
+  background-color: #f1c40f;
+  padding: 12px;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.note-container button:focus {
+  outline: none;
+}
+
+.note-container button:active {
+  background-color: #f39c12;
+  box-shadow: none;
+}
+
+.note-container button:hover {
+  background-color: #f39c12;
+}
+
+.note-container button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Loading Spinner */
+.loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover Effects for Buttons */
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* Input Styling */
+input,
+select {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 100%;
+}
+
+/* Additional UI Styling */
+h1,
+table th {
+  font-family: 'Roboto', sans-serif;
+}
+
+table td {
+  font-family: 'Arial', sans-serif;
+}
+
+@media (max-width: 600px) {
+  table th, table td {
+    padding: 10px;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.charts-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  padding: 30px 0;
+}
+
+canvas {
+  max-width: 100%;
+  width: 400px;
+  height: 300px;
+  background-color: #ffffff;
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
