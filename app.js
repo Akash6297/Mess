@@ -11,20 +11,31 @@ const byWhomInput = document.getElementById('byWhom');
 const dateInput = document.getElementById('date');
 const noteInput = document.getElementById('note');
 
-// 🎙️ Create mic button for note field
+// 🎙️ Mic Button
 const micBtn = document.createElement('button');
 micBtn.textContent = '🎙️';
 micBtn.type = 'button';
 micBtn.style.marginLeft = '5px';
+micBtn.style.padding = '5px';
+micBtn.style.fontSize = '1.5rem';
+micBtn.style.cursor = 'pointer';
+micBtn.style.backgroundColor = '#8e44ad';
+micBtn.style.border = 'none';
+micBtn.style.borderRadius = '50%';
 noteInput.parentNode.insertBefore(micBtn, noteInput.nextSibling);
 
-// 🔊 Voice Recognition for Note Field
+// 🔊 Voice Recognition
 let recognition;
 if ('webkitSpeechRecognition' in window) {
   recognition = new webkitSpeechRecognition();
   recognition.continuous = false;
   recognition.lang = 'en-US';
   recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    micBtn.textContent = '🔴 Listening...';
+    micBtn.style.backgroundColor = '#e74c3c';
+  };
 
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
@@ -35,9 +46,12 @@ if ('webkitSpeechRecognition' in window) {
     alert('Speech recognition error: ' + event.error);
   };
 
-  micBtn.addEventListener('click', () => {
-    recognition.start();
-  });
+  recognition.onend = () => {
+    micBtn.textContent = '🎙️';
+    micBtn.style.backgroundColor = '#8e44ad';
+  };
+
+  micBtn.addEventListener('click', () => recognition.start());
 } else {
   micBtn.disabled = true;
   micBtn.title = 'Speech recognition not supported in this browser.';
@@ -45,12 +59,16 @@ if ('webkitSpeechRecognition' in window) {
 
 let currentData = [];
 
+// 📊 Chart Instances
+let barChart, doughnutChart;
+
 // Fetch and render entries
 async function fetchEntries() {
   const res = await fetch(API_URL);
   const data = await res.json();
   currentData = data;
   renderEntries(data);
+  renderCharts(data);
 }
 
 // Render entries to table
@@ -81,10 +99,55 @@ function renderEntries(data) {
   });
 }
 
-// Add new entry
+// Render Charts
+function renderCharts(data) {
+  const ctx1 = document.getElementById('overallChart').getContext('2d');
+  const ctx2 = document.getElementById('personChart').getContext('2d');
+
+  const totalExpense = data.filter(d => d.type === 'expense').reduce((sum, e) => sum + parseFloat(e.amount), 0);
+  const totalDeposit = data.filter(d => d.type === 'deposit').reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
+  // Destroy previous charts to avoid duplication
+  if (barChart) barChart.destroy();
+  if (doughnutChart) doughnutChart.destroy();
+
+  barChart = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: ['Expense', 'Deposit'],
+      datasets: [{
+        label: 'Total Amount',
+        data: [totalExpense, totalDeposit],
+        backgroundColor: ['#e74c3c', '#2ecc71']
+      }]
+    }
+  });
+
+  // Doughnut Chart by Person
+  const personTotals = {};
+  data.forEach(entry => {
+    const name = entry.byWhom;
+    personTotals[name] = (personTotals[name] || 0) + parseFloat(entry.amount);
+  });
+
+  doughnutChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(personTotals),
+      datasets: [{
+        data: Object.values(personTotals),
+        backgroundColor: ['#f39c12', '#8e44ad', '#3498db', '#1abc9c', '#e67e22', '#2c3e50']
+      }]
+    }
+  });
+}
+// Event Listeners for Chart Type Changes
+overallChartType.addEventListener('change', () => renderCharts(currentData));
+personChartType.addEventListener('change', () => renderCharts(currentData));
+
+// Add entry
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const entry = {
     type: typeInput.value,
     amount: amountInput.value,
@@ -92,13 +155,11 @@ form.addEventListener('submit', async (e) => {
     date: dateInput.value,
     note: noteInput.value,
   };
-
   await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(entry),
   });
-
   form.reset();
   fetchEntries();
 });
@@ -107,24 +168,16 @@ form.addEventListener('submit', async (e) => {
 async function editEntry(id) {
   const item = currentData.find(i => i._id === id);
   if (!item) return;
-
   const newType = prompt("Type (expense/deposit):", item.type);
   const newAmount = prompt("Amount:", item.amount);
   const newByWhom = prompt("By Whom:", item.byWhom);
   const newDate = prompt("Date (YYYY-MM-DD):", item.date.slice(0, 10));
   const newNote = prompt("Note:", item.note);
-
   if (newType && newAmount && newByWhom && newDate) {
     await fetch(`${API_URL}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: newType,
-        amount: newAmount,
-        byWhom: newByWhom,
-        date: newDate,
-        note: newNote
-      }),
+      body: JSON.stringify({ type: newType, amount: newAmount, byWhom: newByWhom, date: newDate, note: newNote }),
     });
     fetchEntries();
   } else {
@@ -140,24 +193,19 @@ async function deleteEntry(id) {
   }
 }
 
-// Filter by person (clickable name)
+// Filter
 function filterByPerson(name) {
   filterPerson.value = name;
   fetchEntries();
 }
 
-// Download entire report
-downloadExcel.addEventListener('click', () => {
-  downloadReport(currentData, 'Full Report');
-});
+downloadExcel.addEventListener('click', () => downloadReport(currentData, 'Full Report'));
 
-// Download report for individual
 function downloadSingleReport(name) {
   const filtered = currentData.filter(d => d.byWhom === name);
   downloadReport(filtered, `${name}_Report`);
 }
 
-// Create and download Excel report
 function downloadReport(data, filename) {
   const sheet = XLSX.utils.json_to_sheet(data.map(d => ({
     Type: d.type,
@@ -171,9 +219,6 @@ function downloadReport(data, filename) {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
-// Filter change listeners
 filterType.addEventListener('change', fetchEntries);
 filterPerson.addEventListener('change', fetchEntries);
-
-// Load data initially
 window.addEventListener('DOMContentLoaded', fetchEntries);
