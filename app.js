@@ -18,6 +18,7 @@ micBtn.type = 'button';
 micBtn.className = 'mic-button';
 noteInput.parentNode.appendChild(micBtn);
 
+
 // Voice Recognition
 let recognition;
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
