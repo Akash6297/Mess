@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function fetchRequirements() {
-  const res = await fetch('http://localhost:5000/api/requirements');
+  const res = await fetch('https://mess-server-sygz.onrender.com/api/requirements');
   const requirements = await res.json();
 
   const topBar = document.getElementById('requirementTopBar');
@@ -158,7 +158,7 @@ async function addRequirement() {
   const text = input?.value.trim();
   if (!text) return;
 
-  await fetch('http://localhost:5000/api/requirements', {
+  await fetch('https://mess-server-sygz.onrender.com/api/requirements', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text })
@@ -169,7 +169,7 @@ async function addRequirement() {
 }
 
 async function deleteRequirement(id) {
-  await fetch(`http://localhost:5000/api/requirements/${id}`, {
+  await fetch(`https://mess-server-sygz.onrender.com/api/requirements/${id}`, {
     method: 'DELETE'
   });
   fetchRequirements();
