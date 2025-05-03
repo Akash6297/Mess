@@ -18,7 +18,6 @@ micBtn.type = 'button';
 micBtn.className = 'mic-button';
 noteInput.parentNode.appendChild(micBtn);
 
-
 // Voice Recognition
 let recognition;
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -81,7 +80,12 @@ async function fetchEntries() {
     document.getElementById('expenseChartType').addEventListener('change', () => renderCharts(filteredData));
 
   } catch (error) {
-    
+    console.error('Fetch error:', error);
+    // Only show alert if fetch fails due to network/server issue
+    if (!currentData.length) {
+      alert('Error fetching entries. Please try again later.');
+    }
+  }
 }
 
 const generateColors = (count) =>
