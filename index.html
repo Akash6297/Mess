@@ -5,61 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Expense Tracker</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    canvas {
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 10px;
-    }
-
-    /* Loading Spinner */
-    .loading {
-      display: none;
-      text-align: center;
-    }
-
-    .loading.show {
-      display: block;
-    }
-
-    /* Styling for Filter Section */
-    .filters select {
-      margin-right: 10px;
-    }
-
-    /* Table Styling */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: left;
-    }
-
-    /* Button Styling */
-    button {
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
     <h1>Expense Tracker</h1>
+     <!-- Top Bar Showing Unfulfilled Requirements -->
+     <div id="requirementTopBar"></div>
+  
+     <ul id="fulfilledList"></ul>
 
     <!-- Add Entry Form -->
     <form id="entryForm">
@@ -105,12 +58,9 @@
       </select>
     </div>
 
-    <!-- Loading Spinner -->
-    <div id="loading" class="loading">
-      <p>Loading...</p>
-    </div>
-
+    
     <!-- Entry List -->
+     <div class="table-container">
     <table>
       <thead>
         <tr>
@@ -126,35 +76,37 @@
         <!-- JS will populate this -->
       </tbody>
     </table>
+  </div>
 
     <!-- Charts Section -->
-    <div style="display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 40px;">
+     <br>
+     <br>
+     <br>
+     <div> Select Overall Chart Type:</div>
+    <select id="overallChartType">
+      <option value="bar">Bar</option>
+      <option value="pie">Pie</option>
+      <option value="doughnut">Doughnut</option>
+    </select>
+    <div class="responsive-flex-container">
       <!-- Overall Chart -->
       <div style="flex: 1; text-align: center;">
-        <label for="overallChartType">Overall Chart Type:</label>
-        <select id="overallChartType">
-          <option value="bar">Bar</option>
-          <option value="pie">Pie</option>
-          <option value="doughnut">Doughnut</option>
-        </select>
+        <label for="overallChartType">Overall</label>
+        
         <canvas id="overallChart" width="300" height="300"></canvas>
       </div>
 
       <!-- Deposit Chart -->
       <div style="flex: 1; text-align: center;">
-        <label for="depositChartType">Deposit Chart:</label>
-        <select id="depositChartType">
-          <option value="pie">Pie</option>
-        </select>
+        <label for="depositChartType">Deposit</label>
+        
         <canvas id="depositChart" width="300" height="300"></canvas>
       </div>
 
       <!-- Expense Chart -->
       <div style="flex: 1; text-align: center;">
-        <label for="expenseChartType">Expense Chart:</label>
-        <select id="expenseChartType">
-          <option value="pie">Pie</option>
-        </select>
+        <label for="expenseChartType">Expense</label>
+        
         <canvas id="expenseChart" width="300" height="300"></canvas>
       </div>
     </div>
@@ -162,20 +114,29 @@
     <br>
     <button id="downloadExcel">Download Full Report</button>
   </div>
+  <div class="container">
+     
+<!-- Floating Requirement Button and Form -->
+<div id="requirementFloating">
+  <button id="requirementToggle">+</button>
+  <div id="requirementForm">
+    <h3>Add Requirement</h3>
+    <input type="text" id="requirementInput" placeholder="Enter requirement" />
+    <button onclick="addRequirement()">Add</button>
+  </div>
+</div>
 
   <!-- Chart.js and XLSX Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="app.js"></script>
-
   <script>
-    // Display loading spinner when data is being processed
-    document.getElementById('loading').classList.add('show');
-
-    // Hide the loading spinner after data is fetched or processed
-    setTimeout(function() {
-      document.getElementById('loading').classList.remove('show');
-    }, 3000); // Simulate data fetching delay
+    document.getElementById('requirementToggle').addEventListener('click', function() {
+      const form = document.getElementById('requirementForm');
+      form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+    });
   </script>
+  
+  
 </body>
 </html>
