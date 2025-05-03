@@ -15,26 +15,21 @@ const noteInput = document.getElementById('note');
 const micBtn = document.createElement('button');
 micBtn.textContent = '🎙️';
 micBtn.type = 'button';
-micBtn.style.marginLeft = '5px';
-micBtn.style.padding = '5px';
-micBtn.style.fontSize = '1.5rem';
-micBtn.style.cursor = 'pointer';
-micBtn.style.backgroundColor = '#8e44ad';
-micBtn.style.border = 'none';
-micBtn.style.borderRadius = '50%';
-noteInput.parentNode.insertBefore(micBtn, noteInput.nextSibling);
+micBtn.className = 'mic-button';
+noteInput.parentNode.appendChild(micBtn);
 
-// 🔊 Voice Recognition
+// Voice Recognition
 let recognition;
-if ('webkitSpeechRecognition' in window) {
-  recognition = new webkitSpeechRecognition();
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
   recognition.continuous = false;
   recognition.lang = 'en-US';
   recognition.interimResults = false;
 
   recognition.onstart = () => {
     micBtn.textContent = '🔴 Listening...';
-    micBtn.style.backgroundColor = '#e74c3c';
+    micBtn.classList.add('listening');
   };
 
   recognition.onresult = (event) => {
@@ -48,7 +43,7 @@ if ('webkitSpeechRecognition' in window) {
 
   recognition.onend = () => {
     micBtn.textContent = '🎙️';
-    micBtn.style.backgroundColor = '#8e44ad';
+    micBtn.classList.remove('listening');
   };
 
   micBtn.addEventListener('click', () => recognition.start());
@@ -58,108 +53,162 @@ if ('webkitSpeechRecognition' in window) {
 }
 
 let currentData = [];
-
-// 📊 Chart Instances
 let barChart, doughnutChart;
 
-// Fetch and render entries
 async function fetchEntries() {
-    try {
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error(`Failed to fetch entries: ${res.statusText}`);
-        const data = await res.json();
-        currentData = data;
-        renderEntries(data);
-        renderCharts(data);
-    } catch (error) {
-        console.error(error);
-        alert('Error fetching entries. Please try again later.');
-    }
-}
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(`Failed to fetch entries: ${res.statusText}`);
+    const data = await res.json();
+    currentData = data;
 
-// Example: Dynamic Chart Colors
-const generateColors = (count) => Array.from({ length: count }, () => `#${Math.floor(Math.random() * 16777215).toString(16)}`);
+    const selectedType = filterType.value;
+    const selectedPerson = filterPerson.value;
 
-// Speech Recognition Fix
-if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-    micBtn.disabled = true;
-    micBtn.title = 'Speech recognition not supported in this browser.';
-} else {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-}
-
-// Attach Event Listeners Dynamically
-function renderEntries(data) {
-    entryList.innerHTML = '';
-    data.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.type}</td>
-            <td>₹${item.amount}</td>
-            <td><a href="#" data-person="${item.byWhom}">${item.byWhom}</a></td>
-            <td>${new Date(item.date).toLocaleDateString()}</td>
-            <td>${item.note || ''}</td>
-            <td class="actions">
-                <button class="edit">Edit</button>
-                <button class="delete">Delete</button>
-                <button class="download">📥</button>
-            </td>
-        `;
-        row.querySelector('.edit').addEventListener('click', () => editEntry(item._id));
-        row.querySelector('.delete').addEventListener('click', () => deleteEntry(item._id));
-        row.querySelector('.download').addEventListener('click', () => downloadSingleReport(item.byWhom));
-        entryList.appendChild(row);
+    const filteredData = data.filter(entry => {
+      const typeMatch = selectedType === 'all' || entry.type === selectedType;
+      const personMatch = selectedPerson === 'all' || entry.byWhom === selectedPerson;
+      return typeMatch && personMatch;
     });
+
+    renderEntries(filteredData);
+    renderCharts(filteredData);
+
+    // Add event listeners for chart type changes
+    document.getElementById('overallChartType').addEventListener('change', () => renderCharts(filteredData));
+    document.getElementById('depositChartType').addEventListener('change', () => renderCharts(filteredData));
+    document.getElementById('expenseChartType').addEventListener('change', () => renderCharts(filteredData));
+
+  } catch (error) {
+    console.error('Fetch error:', error);
+    // Only show alert if fetch fails due to network/server issue
+    if (!currentData.length) {
+      alert('Error fetching entries. Please try again later.');
+    }
+  }
 }
 
-// Render Charts
+const generateColors = (count) =>
+  Array.from({ length: count }, () => `#${Math.floor(Math.random() * 16777215).toString(16)}`);
+
+function renderEntries(data) {
+  entryList.innerHTML = '';
+  data.forEach(item => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${item.type}</td>
+      <td>₹${item.amount}</td>
+      <td><a href="#" data-person="${item.byWhom}">${item.byWhom}</a></td>
+      <td>${new Date(item.date).toLocaleDateString()}</td>
+      <td>${item.note || ''}</td>
+      <td class="action-buttons">
+        <button class="edit">✏️</button>
+        <button class="delete">🗑️</button>
+        <button class="download">📥</button>
+      </td>
+    `;
+    row.querySelector('.edit').addEventListener('click', () => editEntry(item._id));
+    row.querySelector('.delete').addEventListener('click', () => deleteEntry(item._id));
+    row.querySelector('.download').addEventListener('click', () => downloadSingleReport(item.byWhom));
+    row.querySelector('a').addEventListener('click', (e) => {
+      e.preventDefault();
+      filterByPerson(item.byWhom);
+    });
+    entryList.appendChild(row);
+  });
+}
+
 function renderCharts(data) {
-  const ctx1 = document.getElementById('overallChart').getContext('2d');
-  const ctx2 = document.getElementById('personChart').getContext('2d');
+  const overallType = document.getElementById('overallChartType').value;
+  const overallCtx = document.getElementById('overallChart').getContext('2d');
+  const depositCtx = document.getElementById('depositChart').getContext('2d');
+  const expenseCtx = document.getElementById('expenseChart').getContext('2d');
 
   const totalExpense = data.filter(d => d.type === 'expense').reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const totalDeposit = data.filter(d => d.type === 'deposit').reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
-  // Destroy previous charts to avoid duplication
-  if (barChart) barChart.destroy();
-  if (doughnutChart) doughnutChart.destroy();
-
-  barChart = new Chart(ctx1, {
-    type: 'bar',
-    data: {
-      labels: ['Expense', 'Deposit'],
-      datasets: [{
-        label: 'Total Amount',
-        data: [totalExpense, totalDeposit],
-        backgroundColor: ['#e74c3c', '#2ecc71']
-      }]
-    }
-  });
-
-  // Doughnut Chart by Person
   const personTotals = {};
+  const depositTotals = {};
+  const expenseTotals = {};
+
   data.forEach(entry => {
     const name = entry.byWhom;
     personTotals[name] = (personTotals[name] || 0) + parseFloat(entry.amount);
+
+    if (entry.type === 'deposit') {
+      depositTotals[name] = (depositTotals[name] || 0) + parseFloat(entry.amount);
+    } else if (entry.type === 'expense') {
+      expenseTotals[name] = (expenseTotals[name] || 0) + parseFloat(entry.amount);
+    }
   });
 
-  doughnutChart = new Chart(ctx2, {
-    type: 'doughnut',
+  if (barChart) barChart.destroy();
+  if (doughnutChart) doughnutChart.destroy();
+
+  // Check and destroy the existing charts if they exist
+  if (window.depositChart && window.depositChart.destroy) window.depositChart.destroy();
+  if (window.expenseChart && window.expenseChart.destroy) window.expenseChart.destroy();
+
+  // Overall Chart
+  barChart = new Chart(overallCtx, {
+    type: overallType,
     data: {
-      labels: Object.keys(personTotals),
+      labels: ['Expense', 'Deposit'],
       datasets: [{
-        data: Object.values(personTotals),
-        backgroundColor: ['#f39c12', '#8e44ad', '#3498db', '#1abc9c', '#e67e22', '#2c3e50']
+        label: 'Total',
+        data: [totalExpense, totalDeposit],
+        backgroundColor: ['#e74c3c', '#2ecc71']
       }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: overallType !== 'bar' },
+        title: { display: true, text: 'Overall Summary' }
+      }
+    }
+  });
+
+  // Deposit Chart
+  window.depositChart = new Chart(depositCtx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(depositTotals),
+      datasets: [{
+        data: Object.values(depositTotals),
+        backgroundColor: generateColors(Object.keys(depositTotals).length)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'right' },
+        title: { display: true, text: 'Deposit Distribution' }
+      }
+    }
+  });
+
+  // Expense Chart
+  window.expenseChart = new Chart(expenseCtx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(expenseTotals),
+      datasets: [{
+        data: Object.values(expenseTotals),
+        backgroundColor: generateColors(Object.keys(expenseTotals).length)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'right' },
+        title: { display: true, text: 'Expense Distribution' }
+      }
     }
   });
 }
-// Event Listeners for Chart Type Changes
-overallChartType.addEventListener('change', () => renderCharts(currentData));
-personChartType.addEventListener('change', () => renderCharts(currentData));
 
-// Add entry
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const entry = {
@@ -178,7 +227,6 @@ form.addEventListener('submit', async (e) => {
   fetchEntries();
 });
 
-// Edit entry
 async function editEntry(id) {
   const item = currentData.find(i => i._id === id);
   if (!item) return;
@@ -199,7 +247,6 @@ async function editEntry(id) {
   }
 }
 
-// Delete entry
 async function deleteEntry(id) {
   if (confirm("Are you sure you want to delete this entry?")) {
     await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -207,13 +254,12 @@ async function deleteEntry(id) {
   }
 }
 
-// Filter
 function filterByPerson(name) {
   filterPerson.value = name;
   fetchEntries();
 }
 
-downloadExcel.addEventListener('click', () => downloadReport(currentData, 'Full Report'));
+downloadExcel.addEventListener('click', () => downloadReport(currentData, 'Full_Report'));
 
 function downloadSingleReport(name) {
   const filtered = currentData.filter(d => d.byWhom === name);
@@ -235,4 +281,5 @@ function downloadReport(data, filename) {
 
 filterType.addEventListener('change', fetchEntries);
 filterPerson.addEventListener('change', fetchEntries);
+
 window.addEventListener('DOMContentLoaded', fetchEntries);
