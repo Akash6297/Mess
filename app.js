@@ -117,6 +117,65 @@ function renderEntries(data) {
     entryList.appendChild(row);
   });
 }
+document.addEventListener('DOMContentLoaded', () => {
+  fetchRequirements();
+
+  const addButton = document.getElementById('addRequirementBtn');
+  if (addButton) {
+    addButton.addEventListener('click', addRequirement);
+  }
+});
+
+async function fetchRequirements() {
+  const res = await fetch('http://localhost:5000/api/requirements');
+  const requirements = await res.json();
+
+  const topBar = document.getElementById('requirementTopBar');
+  const fulfilledList = document.getElementById('fulfilledList');
+  topBar.innerHTML = '';
+  fulfilledList.innerHTML = '';
+
+  requirements.forEach(req => {
+    const div = document.createElement('div');
+    div.className = 'requirementItem';
+
+    if (!req.fulfilled) {
+      div.innerHTML = `
+        <span>${req.text}</span>
+        <button onclick="deleteRequirement('${req._id}')">Delete</button>
+      `;
+      topBar.appendChild(div);
+    } else {
+      const li = document.createElement('li');
+      li.textContent = req.text;
+      fulfilledList.appendChild(li);
+    }
+  });
+}
+
+async function addRequirement() {
+  const input = document.getElementById('requirementInput');
+  const text = input?.value.trim();
+  if (!text) return;
+
+  await fetch('http://localhost:5000/api/requirements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+
+  input.value = '';
+  fetchRequirements();
+}
+
+async function deleteRequirement(id) {
+  await fetch(`http://localhost:5000/api/requirements/${id}`, {
+    method: 'DELETE'
+  });
+  fetchRequirements();
+}
+
+
 
 function renderCharts(data) {
   const overallType = document.getElementById('overallChartType').value;
@@ -171,7 +230,7 @@ function renderCharts(data) {
 
   // Deposit Chart
   window.depositChart = new Chart(depositCtx, {
-    type: 'pie',
+    type: overallType,
     data: {
       labels: Object.keys(depositTotals),
       datasets: [{
@@ -182,7 +241,7 @@ function renderCharts(data) {
     options: {
       responsive: true,
       plugins: {
-        legend: { position: 'right' },
+        legend: { display: overallType !== 'bar' },
         title: { display: true, text: 'Deposit Distribution' }
       }
     }
@@ -190,7 +249,7 @@ function renderCharts(data) {
 
   // Expense Chart
   window.expenseChart = new Chart(expenseCtx, {
-    type: 'pie',
+    type: overallType,
     data: {
       labels: Object.keys(expenseTotals),
       datasets: [{
@@ -201,7 +260,7 @@ function renderCharts(data) {
     options: {
       responsive: true,
       plugins: {
-        legend: { position: 'right' },
+        legend: { display: overallType !== 'bar' },
         title: { display: true, text: 'Expense Distribution' }
       }
     }
@@ -260,6 +319,27 @@ function filterByPerson(name) {
 }
 
 downloadExcel.addEventListener('click', () => downloadReport(currentData, 'Full_Report'));
+
+let selectedRequirementId = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchRequirements();
+
+  // Add click handler for dynamically added checkboxes
+  document.getElementById("requirements-bar").addEventListener("change", function (e) {
+    if (e.target.classList.contains("requirement-checkbox")) {
+      const requirementId = e.target.dataset.id;
+      const text = e.target.dataset.text;
+
+      // Add requirement to note field
+      document.getElementById("note").value = text;
+
+      // Track selected requirement ID for deletion after submission
+      selectedRequirementId = requirementId;
+    }
+  });
+});
+
 
 function downloadSingleReport(name) {
   const filtered = currentData.filter(d => d.byWhom === name);
