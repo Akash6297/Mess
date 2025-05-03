@@ -339,3 +339,181 @@ canvas {
   padding: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
+#requirementTopBar {
+  background: #f4f4f4;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.requirementItem {
+  background: #ffeaa7;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  min-width: 600px; /* Ensures horizontal scroll on smaller screens */
+  border-collapse: collapse;
+}
+
+/* Floating Button Container */
+#requirementFloating {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+/* Floating + Button */
+#requirementToggle {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.3s;
+}
+
+#requirementToggle:hover {
+  background-color: #0056b3;
+}
+
+/* Hidden Form Initially */
+#requirementForm {
+  display: none;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  margin-top: 10px;
+  width: 250px;
+}
+
+/* Style Input and Add Button */
+#requirementForm input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+#requirementForm button {
+  width: 100%;
+  padding: 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#requirementForm button:hover {
+  background-color: #45a049;
+}
+
+.responsive-flex-container {
+  display: block;
+  margin-top: 40px;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .responsive-flex-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}
+
+canvas {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Loading Spinner */
+.loading {
+  display: none;
+  text-align: center;
+}
+
+.loading.show {
+  display: block;
+}
+
+/* Styling for Filter Section */
+.filters select {
+  margin-right: 10px;
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ccc;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+/* Button Styling */
+button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* Requirement Box Styling */
+#requirementContainer {
+  margin-bottom: 20px;
+}
+
+#requirementTopBar {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.requirementItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.requirementItem span {
+  flex-grow: 1;
+}
+
+.requirementItem button {
+  margin-left: 10px;
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.requirementItem button:hover {
+  background-color: #e60000;
+}
